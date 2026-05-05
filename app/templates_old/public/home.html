@@ -1,0 +1,221 @@
+{% extends 'public/base_public.html' %}
+{% block title %}Liga FC — Portal Oficial{% endblock %}
+
+{% block content %}
+
+<!-- ─── HERO ─────────────────────────────────────── -->
+<section class="hero">
+  <div class="container" style="padding-top:52px; padding-bottom:52px;">
+    <div style="display:grid; grid-template-columns:1fr 420px; gap:40px; align-items:center;">
+
+      <!-- Izquierda: branding + stats -->
+      <div class="fade-up">
+        <div style="font-family:var(--f-title); font-size:11px; letter-spacing:4px; color:var(--verde); margin-bottom:12px; text-transform:uppercase;">Temporada {{ series[0].año if series else 2025 }}</div>
+        <h1 style="font-family:var(--f-title); font-size:clamp(42px,6vw,72px); font-weight:700; line-height:1; letter-spacing:2px; margin-bottom:20px;">
+          LIGA<br><span style="color:var(--verde)">OFICIAL</span><br>FC
+        </h1>
+        <p style="font-size:15px; color:var(--muted); line-height:1.7; max-width:420px; margin-bottom:28px; font-style:italic;">
+          Resultados en tiempo real, estadísticas completas y toda la información de tu liga favorita en un solo lugar.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="{{ url_for('public.tabla') }}" class="btn btn-primary">Ver tabla →</a>
+          <a href="{{ url_for('public.partidos') }}" class="btn btn-outline">Partidos</a>
+        </div>
+
+        <!-- Quick stats -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:36px; padding-top:28px; border-top:1px solid var(--borde);">
+          {% for label, val, cls in [
+            ('Jugadores', total_jugadores, 'sv-g'),
+            ('Equipos', total_equipos, 'sv-w'),
+            ('Partidos', total_partidos, 'sv-a'),
+            ('Goles', total_goles, 'sv-r')
+          ] %}
+          <div>
+            <div style="font-family:var(--f-title); font-size:34px; font-weight:700;" class="{{ cls }}">{{ val }}</div>
+            <div style="font-family:var(--f-title); font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase;">{{ label }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Derecha: último resultado destacado -->
+      <div class="fade-up-2">
+        {% if ultimos %}
+        {% set u = ultimos[0] %}
+        <div style="background:var(--grafito); border:1px solid var(--borde); border-radius:12px; padding:28px; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--verde),var(--acento));"></div>
+          <div style="font-family:var(--f-title); font-size:10px; letter-spacing:3px; color:var(--verde); margin-bottom:18px;">ÚLTIMO RESULTADO</div>
+          <div style="text-align:center; margin-bottom:20px;">
+            <div style="font-family:var(--f-title); font-size:13px; color:var(--muted); margin-bottom:6px;">
+              {{ u.equipo_local.nombre }}
+            </div>
+            <div style="font-family:var(--f-title); font-size:56px; font-weight:700; color:var(--acento); letter-spacing:12px; line-height:1;">
+              {{ u.goles_local }}<span style="color:#9ca3af; font-size:32px;">-</span>{{ u.goles_visita }}
+            </div>
+            <div style="font-family:var(--f-title); font-size:13px; color:var(--muted); margin-top:6px;">
+              {{ u.equipo_visita.nombre }}
+            </div>
+          </div>
+          <div style="font-size:11px; color:var(--muted); text-align:center; border-top:1px solid var(--borde); padding-top:14px; font-family:var(--f-mono);">
+            {{ u.serie.nombre }} · {{ u.fecha.strftime('%d/%m/%Y') }}
+            {% if u.cancha %} · {{ u.cancha }}{% endif %}
+          </div>
+          <a href="{{ url_for('public.partido_detalle', id=u.id) }}"
+             style="display:block; text-align:center; margin-top:14px; font-family:var(--f-title); font-size:11px; letter-spacing:1.5px; color:var(--verde); text-decoration:none;">
+            VER DETALLE →
+          </a>
+        </div>
+        {% else %}
+        <div style="background:var(--grafito); border:1px solid var(--borde); border-radius:12px; padding:40px; text-align:center; color:var(--muted);">
+          <div style="font-size:48px; margin-bottom:12px;">🏆</div>
+          <div style="font-family:var(--f-title); font-size:14px; letter-spacing:1px;">La temporada está por comenzar</div>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── ÚLTIMOS RESULTADOS + PRÓXIMOS ────────────────── -->
+<div class="container page-wrap">
+
+  <div style="display:grid; grid-template-columns:1.1fr 1fr; gap:32px; margin-bottom:48px;">
+
+    <!-- Últimos -->
+    <div>
+      <div class="section-head">
+        <h2 class="section-title">Resultados</h2>
+        <div class="section-line"></div>
+        <a href="{{ url_for('public.partidos', estado='jugado') }}" class="section-link">Ver todos →</a>
+      </div>
+      {% if ultimos %}
+        {% for p in ultimos %}
+        <a href="{{ url_for('public.partido_detalle', id=p.id) }}" class="match" style="display:block; text-decoration:none; color:inherit;">
+          <div class="match-meta">
+            <span class="badge b-green">Jugado</span>
+            <span>{{ p.serie.codigo }}</span>
+            <span>{{ p.fecha.strftime('%d %b %Y') }}</span>
+          </div>
+          <div class="match-body">
+            <div class="match-team">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:{{ p.equipo_local.color }}"></div>
+                <div class="match-name">{{ p.equipo_local.nombre }}</div>
+              </div>
+            </div>
+            <div class="match-score">{{ p.goles_local }}<span style="font-size:20px;color:#9ca3af;margin:0 4px">·</span>{{ p.goles_visita }}</div>
+            <div class="match-team" style="text-align:right;">
+              <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+                <div class="match-name">{{ p.equipo_visita.nombre }}</div>
+                <div style="width:10px;height:10px;border-radius:50%;background:{{ p.equipo_visita.color }}"></div>
+              </div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div class="empty"><div class="empty-icon">🗓️</div><div class="empty-text">Sin resultados aún</div></div>
+      {% endif %}
+    </div>
+
+    <!-- Próximos -->
+    <div>
+      <div class="section-head">
+        <h2 class="section-title">Próximos</h2>
+        <div class="section-line"></div>
+        <a href="{{ url_for('public.partidos', estado='programado') }}" class="section-link">Ver todos →</a>
+      </div>
+      {% if proximos %}
+        {% for p in proximos %}
+        <div class="match">
+          <div class="match-meta">
+            <span class="badge b-gray">Programado</span>
+            <span>{{ p.serie.codigo }}</span>
+            <span>{{ p.fecha.strftime('%d %b') }}{% if p.hora %} · {{ p.hora.strftime('%H:%M') }}{% endif %}</span>
+            {% if p.cancha %}<span>📍 {{ p.cancha }}</span>{% endif %}
+          </div>
+          <div class="match-body">
+            <div class="match-team">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:{{ p.equipo_local.color }}"></div>
+                <div class="match-name">{{ p.equipo_local.nombre }}</div>
+              </div>
+            </div>
+            <div class="match-score pending">vs</div>
+            <div class="match-team" style="text-align:right;">
+              <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+                <div class="match-name">{{ p.equipo_visita.nombre }}</div>
+                <div style="width:10px;height:10px;border-radius:50%;background:{{ p.equipo_visita.color }}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Sin partidos programados</div></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ─── TOP GOLEADORES ──────────────────────────── -->
+  <div style="margin-bottom:48px;">
+    <div class="section-head">
+      <h2 class="section-title">Goleadores</h2>
+      <div class="section-line"></div>
+      <a href="{{ url_for('public.estadisticas') }}" class="section-link">Estadísticas completas →</a>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px;">
+      {% for jugador, goles in top_goleadores %}
+      <a href="{{ url_for('public.jugador_detalle', id=jugador.id) }}"
+         style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:14px;
+                background:var(--carbon); border:1px solid var(--borde); border-radius:var(--radius);
+                padding:14px 16px; transition:border-color .15s;"
+         onmouseover="this.style.borderColor='rgba(0,140,58,.4)'"
+         onmouseout="this.style.borderColor='var(--borde)'">
+        <span class="rank-num {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">{{ loop.index }}</span>
+        <div class="player-avatar" style="width:42px;height:42px;font-size:15px;margin:0;flex-shrink:0;">
+          {% if jugador.foto %}<img src="{{ url_for('static', filename='img/uploads/' + jugador.foto) }}">
+          {% else %}{{ jugador.iniciales }}{% endif %}
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-family:var(--f-title); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ jugador.nombre }}</div>
+          <div style="font-size:11px; color:var(--muted);">{{ jugador.equipo.nombre if jugador.equipo else '—' }}</div>
+        </div>
+        <div style="font-family:var(--f-title); font-size:26px; color:var(--acento);">{{ goles }}</div>
+        <span style="font-size:14px;">⚽</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ─── NOTICIAS ────────────────────────────────── -->
+  {% if noticias %}
+  <div>
+    <div class="section-head">
+      <h2 class="section-title">Noticias</h2>
+      <div class="section-line"></div>
+      <a href="{{ url_for('public.noticias') }}" class="section-link">Ver todas →</a>
+    </div>
+    <div class="news-grid">
+      {% for n in noticias %}
+      <a href="{{ url_for('public.noticia_detalle', id=n.id) }}" class="news-card">
+        {% if n.imagen_url %}
+        <img src="{{ n.imagen_url }}" class="news-img" alt="{{ n.titulo }}" onerror="this.style.display='none'">
+        {% else %}
+        <div class="news-img">{{ n.categoria_display[0] }}</div>
+        {% endif %}
+        <div class="news-body">
+          <div class="news-cat">{{ n.categoria_display[1] }}</div>
+          <div class="news-title">{{ n.titulo }}</div>
+          {% if n.resumen %}<div class="news-excerpt">{{ n.resumen }}</div>{% endif %}
+          <div class="news-date">{{ n.creado_en.strftime('%d/%m/%Y') }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

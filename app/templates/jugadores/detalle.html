@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}{{ jugador.nombre }} - Liga Control{% endblock %}
+{% block topbar_title %}PERFIL JUGADOR{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('jugadores.editar', id=jugador.id) }}" class="btn btn-secondary">Editar</a>
+  <a href="{{ url_for('jugadores.index') }}" class="btn btn-secondary">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<div class="adm-detail">
+
+  <!-- Perfil -->
+  <div>
+    <div class="card">
+      <div class="card-body" style="text-align:center;padding:28px 20px">
+        <div style="width:90px;height:90px;border-radius:50%;margin:0 auto 14px;overflow:hidden;border:3px solid #2a2a2a;background:#1a2e1f;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--verde-claro)">
+          {% if jugador.foto %}
+          <img src="{{ url_for('static', filename='img/uploads/' + jugador.foto) }}" style="width:100%;height:100%;object-fit:cover">
+          {% else %}{{ jugador.iniciales }}{% endif %}
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px">{{ jugador.nombre }}</div>
+        <div style="font-size:12px;color:#555;margin-top:4px">{{ jugador.posicion or 'Sin posición' }}</div>
+        {% if jugador.serie %}<div style="margin-top:10px"><span class="badge b-amber">{{ jugador.serie.nombre }}</span></div>{% endif %}
+        {% if jugador.equipo %}<div style="margin-top:6px;font-size:13px;color:#888">{{ jugador.equipo.nombre }}</div>{% endif %}
+      </div>
+      <div style="border-top:1px solid #1e1e1e;padding:16px 20px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <span style="color:#555">RUT</span>
+            <span style="color:#ccc;font-family:monospace">{{ jugador.rut }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <span style="color:#555">Edad</span>
+            <span style="color:var(--acento);font-family:'Bebas Neue',sans-serif;font-size:18px">
+              {{ jugador.edad if jugador.edad is not none else '-' }} años
+            </span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <span style="color:#555">Nacimiento</span>
+            <span style="color:#ccc">{{ jugador.fecha_nac.strftime('%d/%m/%Y') if jugador.fecha_nac else '-' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">ESTADÍSTICAS</span></div>
+      <div class="adm-3col" style="padding:16px 20px;text-align:center">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--acento)">{{ jugador.total_goles }}</div>
+          <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px">Goles</div>
+        </div>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:#e8c547">{{ jugador.total_amarillas }}</div>
+          <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px">🟨 TA</div>
+        </div>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:#e74c3c">{{ jugador.total_rojas }}</div>
+          <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px">🟥 TR</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de actividad -->
+  <div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">HISTORIAL DE EVENTOS</span></div>
+      {% if actividades %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Min</th><th>Evento</th><th>Partido</th><th>Fecha</th></tr></thead>
+          <tbody>
+            {% for act in actividades %}
+            <tr>
+              <td><span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--acento)">{{ act.minuto }}'</span></td>
+              <td>
+                <span style="font-size:16px">{{ act.icono }}</span>
+                <span style="font-size:12px;color:#ccc;margin-left:6px">{{ act.tipo_display }}</span>
+              </td>
+              <td style="font-size:12px;color:#888">
+                {% if act.partido %}
+                {{ act.partido.equipo_local.nombre }} vs {{ act.partido.equipo_visita.nombre }}
+                {% endif %}
+              </td>
+              <td style="font-size:11px;color:#555">
+                {{ act.partido.fecha.strftime('%d/%m/%Y') if act.partido else '-' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">⚡</div>
+        <div class="empty-text">Sin eventos registrados para este jugador.</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

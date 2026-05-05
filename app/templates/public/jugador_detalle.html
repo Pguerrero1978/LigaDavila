@@ -1,0 +1,104 @@
+{% extends 'public/base_public.html' %}
+{% block title %}{{ jugador.nombre }} — Liga FC{% endblock %}
+{% block content %}
+<div class="container page-wrap">
+  <div class="grid-detail fade-up">
+
+    <!-- Perfil -->
+    <div>
+      <div class="card" style="text-align:center; padding:32px 24px;">
+        <div class="player-avatar" style="width:100px;height:100px;font-size:36px;margin-bottom:16px;">
+          {% if jugador.foto %}<img src="{{ url_for('static', filename='img/uploads/' + jugador.foto) }}">
+          {% else %}{{ jugador.iniciales }}{% endif %}
+        </div>
+        <h1 style="font-family:var(--f-title); font-size:22px; font-weight:700; letter-spacing:.5px; margin-bottom:4px;">{{ jugador.nombre }}</h1>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:16px;">{{ jugador.posicion or 'Sin posición' }}</div>
+        {% if jugador.equipo %}
+        <a href="{{ url_for('public.equipo_detalle', id=jugador.equipo.id) }}"
+           style="display:inline-block; font-family:var(--f-title); font-size:12px; letter-spacing:1px; color:var(--verde); text-decoration:none; border:1px solid rgba(0,140,58,.35); border-radius:6px; padding:6px 16px;">
+          🛡️ {{ jugador.equipo.nombre }}
+        </a>
+        {% endif %}
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-head"><span class="card-title">Datos</span></div>
+        <div style="padding:16px 20px; display:flex; flex-direction:column; gap:12px; font-size:13px;">
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--muted);">RUT</span>
+            <span style="font-family:var(--f-mono); color:var(--texto);">{{ jugador.rut }}</span>
+          </div>
+          {% if jugador.edad is not none %}
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--muted);">Edad</span>
+            <span style="font-family:var(--f-title); font-size:20px; color:var(--acento);">{{ jugador.edad }} años</span>
+          </div>
+          {% endif %}
+          {% if jugador.fecha_nac %}
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--muted);">Nacimiento</span>
+            <span style="color:var(--texto);">{{ jugador.fecha_nac.strftime('%d/%m/%Y') }}</span>
+          </div>
+          {% endif %}
+          {% if jugador.serie %}
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--muted);">Serie</span>
+            <span class="badge b-amber">{{ jugador.serie.nombre }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Stats del jugador -->
+      <div class="grid-stats3" style="margin-top:14px;">
+        <div class="stat-box" style="text-align:center; padding:14px 10px;">
+          <div class="stat-val sv-a" style="font-size:28px;">{{ jugador.total_goles }}</div>
+          <div class="stat-label">Goles</div>
+        </div>
+        <div class="stat-box" style="text-align:center; padding:14px 10px;">
+          <div class="stat-val sv-a" style="font-size:28px;">{{ jugador.total_amarillas }}</div>
+          <div class="stat-label">🟨</div>
+        </div>
+        <div class="stat-box" style="text-align:center; padding:14px 10px;">
+          <div class="stat-val sv-r" style="font-size:28px;">{{ jugador.total_rojas }}</div>
+          <div class="stat-label">🟥</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="fade-up-2">
+      <div class="section-head">
+        <h2 class="section-title">Historial de eventos</h2>
+        <div class="section-line"></div>
+      </div>
+      {% if actividades %}
+      <div class="card">
+        <div style="padding:8px 0;">
+          {% for act in actividades %}
+          <div class="timeline-item" style="padding:12px 20px;">
+            <span class="timeline-min">{{ act.minuto }}'</span>
+            <span class="timeline-icon">{{ act.icono }}</span>
+            <div class="timeline-info">
+              <div class="timeline-tipo">{{ act.tipo_display }}</div>
+              <div class="timeline-desc">
+                {% if act.partido %}
+                  {{ act.partido.equipo_local.nombre }} vs {{ act.partido.equipo_visita.nombre }}
+                  · {{ act.partido.fecha.strftime('%d/%m/%Y') }}
+                  {% if act.partido.serie %} · {{ act.partido.serie.nombre }}{% endif %}
+                {% endif %}
+                {% if act.descripcion %} · {{ act.descripcion }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Sin eventos registrados</div></div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

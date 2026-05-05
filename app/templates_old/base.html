@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Liga Control{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --verde:#1a7a3c;--verde-claro:#2ecc71;--verde-oscuro:#0f5228;
+      --negro:#0d0d0d;--blanco:#fafafa;--gris:#f0f0ee;--gris-medio:#d0d0cc;
+      --acento:#e8c547;--rojo:#c0392b;--azul:#2980b9;
+      --font-title:'Bebas Neue',sans-serif;--font-body:'DM Sans',sans-serif;
+      --radius:10px;--radius-lg:16px;--sidebar-w:230px;
+    }
+    body{font-family:var(--font-body);background:var(--negro);color:var(--blanco);min-height:100vh;display:flex}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:#111;border-right:1px solid #222;position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+    .logo{padding:20px 18px 14px;border-bottom:1px solid #222}
+    .logo-title{font-family:var(--font-title);font-size:28px;color:var(--acento);letter-spacing:2px;line-height:1}
+    .logo-sub{font-size:10px;color:#555;letter-spacing:3px;text-transform:uppercase;margin-top:3px}
+    .nav{flex:1;padding:12px 0}
+    .nav-section{font-size:9px;letter-spacing:2.5px;color:#3a3a3a;text-transform:uppercase;padding:14px 18px 6px;font-weight:600}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;border-left:3px solid transparent;transition:all .15s;color:#777;font-size:13px;text-decoration:none}
+    .nav-item:hover{background:#1a1a1a;color:#ccc;border-left-color:#333}
+    .nav-item.active{background:#1a2e1f;color:var(--verde-claro);border-left-color:var(--verde-claro);font-weight:500}
+    .nav-icon{font-size:15px;width:20px;text-align:center}
+    .sidebar-footer{padding:14px 18px;border-top:1px solid #222}
+    .badge-liga{background:var(--verde-oscuro);color:var(--verde-claro);font-size:10px;padding:5px 10px;border-radius:20px;font-weight:500;text-align:center;display:block}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+    .topbar{background:#111;border-bottom:1px solid #222;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+    .topbar-title{font-family:var(--font-title);font-size:24px;letter-spacing:1.5px}
+    .topbar-actions{display:flex;gap:10px;align-items:center}
+    .content{padding:22px 24px;flex:1}
+
+    /* BUTTONS */
+    .btn{font-family:var(--font-body);font-size:13px;font-weight:500;padding:8px 16px;border-radius:7px;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:7px;text-decoration:none;line-height:1}
+    .btn-primary{background:var(--verde);color:#fff}.btn-primary:hover{background:var(--verde-claro);color:var(--negro)}
+    .btn-secondary{background:#1e1e1e;color:#aaa;border:1px solid #2a2a2a}.btn-secondary:hover{background:#252525;color:#ddd}
+    .btn-danger{background:#2a1010;color:#e74c3c;border:1px solid #3a1515}.btn-danger:hover{background:#e74c3c;color:#fff}
+    .btn-accent{background:var(--acento);color:var(--negro);font-weight:600}.btn-accent:hover{background:#d4b030}
+    .btn-info{background:#0a1a2e;color:#5dade2;border:1px solid #0e2a45}.btn-info:hover{background:#5dade2;color:#000}
+    .btn-sm{padding:5px 11px;font-size:11px}
+
+    /* CARDS */
+    .card{background:#141414;border:1px solid #1e1e1e;border-radius:var(--radius-lg);overflow:hidden;margin-bottom:18px}
+    .card-header{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e1e1e}
+    .card-title{font-family:var(--font-title);font-size:18px;letter-spacing:1px}
+    .card-body{padding:20px}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+    .stat-card{background:#161616;border:1px solid #222;border-radius:var(--radius-lg);padding:16px 20px}
+    .stat-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:6px}
+    .stat-value{font-family:var(--font-title);font-size:36px;letter-spacing:1px;line-height:1}
+    .stat-sub{font-size:11px;color:#444;margin-top:4px}
+    .sv-green{color:var(--verde-claro)}.sv-amber{color:var(--acento)}.sv-red{color:#e74c3c}.sv-blue{color:#5dade2}
+
+    /* TABLE */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th{background:#0f0f0f;color:#555;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid #1e1e1e;white-space:nowrap}
+    td{padding:11px 14px;border-bottom:1px solid #191919;font-size:13px;color:#bbb;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#181818}
+
+    /* FORMS */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .form-group{display:flex;flex-direction:column;gap:6px}
+    .form-group.full{grid-column:1/-1}
+    label{font-size:11px;color:#666;font-weight:500;letter-spacing:.8px;text-transform:uppercase}
+    input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],input[type=time],input[type=color],select,textarea{
+      background:#0f0f0f;border:1px solid #252525;border-radius:7px;color:#ddd;
+      font-family:var(--font-body);font-size:13px;padding:9px 12px;width:100%;transition:border .15s}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde);background:#0d0d0d}
+    textarea{resize:vertical;min-height:90px}
+    select option{background:#161616}
+    .form-section-title{font-family:var(--font-title);font-size:13px;letter-spacing:2px;color:#444;
+      text-transform:uppercase;margin:18px 0 10px;padding-bottom:8px;border-bottom:1px solid #1e1e1e;grid-column:1/-1}
+
+    /* BADGES */
+    .badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.5px;white-space:nowrap}
+    .b-green{background:#0f2e1a;color:var(--verde-claro)}
+    .b-amber{background:#2e2008;color:var(--acento)}
+    .b-red{background:#2a0a0a;color:#e74c3c}
+    .b-blue{background:#0a1a2e;color:#5dade2}
+    .b-gray{background:#1a1a1a;color:#666}
+    .b-purple{background:#1a0a2e;color:#a855f7}
+
+    /* AVATAR */
+    .avatar{width:34px;height:34px;border-radius:50%;background:#1a2e1f;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--verde-claro);border:1px solid #2a2a2a;overflow:hidden;flex-shrink:0}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .player-cell{display:flex;align-items:center;gap:10px}
+
+    /* ALERTS */
+    .alert{padding:12px 16px;border-radius:8px;margin-bottom:14px;font-size:13px;display:flex;align-items:center;gap:8px}
+    .alert-success{background:#0f2e1a;border:1px solid #1a4a28;color:var(--verde-claro)}
+    .alert-danger{background:#2a0a0a;color:#e74c3c;border:1px solid #3a1515}
+    .alert-warning{background:#2e2008;color:var(--acento);border:1px solid #3a2a10}
+    .alert-info{background:#0a1a2e;color:#5dade2;border:1px solid #0e2a45}
+
+    /* EMPTY */
+    .empty-state{text-align:center;padding:50px 20px;color:#333}
+    .empty-icon{font-size:52px;margin-bottom:14px}
+    .empty-text{font-size:14px;color:#444;margin-bottom:16px}
+
+    /* MATCH CARD */
+    .match-card{background:#141414;border:1px solid #1e1e1e;border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:12px}
+    .match-teams{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:14px 0}
+    .match-team{flex:1}
+    .match-team-name{font-family:var(--font-title);font-size:18px;letter-spacing:1px}
+    .match-score{font-family:var(--font-title);font-size:40px;color:var(--acento);letter-spacing:6px;text-align:center;min-width:100px}
+    .match-meta{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #1e1e1e;font-size:11px;color:#555}
+
+    /* RANK */
+    .rank-n{font-family:var(--font-title);font-size:22px;color:#2a2a2a;min-width:30px}
+    .rank-1{color:var(--acento)!important}.rank-2{color:#aaa!important}.rank-3{color:#cd7f32!important}
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:#0d0d0d}
+    ::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:#333}
+
+    /* FILTERS ROW */
+    .filters{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+    .filters select,.filters input{width:auto;min-width:140px;padding:7px 10px;font-size:12px}
+    .filters .spacer{flex:1}
+
+    @media(max-width:768px){
+      .sidebar{width:60px}.main{margin-left:60px}
+      .nav-item span,.logo-sub,.nav-section,.sidebar-footer{display:none}
+      .logo-title{font-size:20px}
+      .form-grid{grid-template-columns:1fr}
+      .stats-grid{grid-template-columns:1fr 1fr}
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-title">⚽ LIGA</div>
+    <div class="logo-sub">Control Total</div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Principal</div>
+    <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+      <span class="nav-icon">📊</span><span>Dashboard</span>
+    </a>
+
+    <div class="nav-section">Gestión</div>
+    <a href="{{ url_for('jugadores.index') }}" class="nav-item {% if request.blueprint == 'jugadores' %}active{% endif %}">
+      <span class="nav-icon">👤</span><span>Jugadores</span>
+    </a>
+    <a href="{{ url_for('series.index') }}" class="nav-item {% if request.blueprint == 'series' %}active{% endif %}">
+      <span class="nav-icon">🏷️</span><span>Series</span>
+    </a>
+    <a href="{{ url_for('equipos.index') }}" class="nav-item {% if request.blueprint == 'equipos' %}active{% endif %}">
+      <span class="nav-icon">🛡️</span><span>Equipos</span>
+    </a>
+
+    <div class="nav-section">Competencia</div>
+    <a href="{{ url_for('partidos.index') }}" class="nav-item {% if request.blueprint == 'partidos' %}active{% endif %}">
+      <span class="nav-icon">🗓️</span><span>Partidos</span>
+    </a>
+
+    <div class="nav-section">Estadísticas</div>
+    <a href="{{ url_for('goleadores.index') }}" class="nav-item {% if request.blueprint == 'goleadores' %}active{% endif %}">
+      <span class="nav-icon">🥅</span><span>Goleadores</span>
+    </a>
+    <a href="{{ url_for('tabla.index') }}" class="nav-item {% if request.blueprint == 'tabla' %}active{% endif %}">
+      <span class="nav-icon">📋</span><span>Posiciones</span>
+    </a>
+
+    <div class="nav-section">Contenido</div>
+    <a href="{{ url_for('noticias_admin.index') }}" class="nav-item {% if request.blueprint == 'noticias_admin' %}active{% endif %}">
+      <span class="nav-icon">📰</span><span>Noticias</span>
+    </a>
+
+    <div class="nav-section">Portal</div>
+    <a href="{{ url_for('public.home') }}" class="nav-item" target="_blank">
+      <span class="nav-icon">🌐</span><span>Ver sitio público</span>
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    <span class="badge-liga">{{ current_user.username }}</span>
+    <a href="{{ url_for('auth.logout') }}" style="display:block;text-align:center;font-size:11px;color:#444;margin-top:8px;text-decoration:none">Cerrar sesión</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">{% block topbar_title %}{% endblock %}</div>
+    <div class="topbar-actions">{% block topbar_actions %}{% endblock %}</div>
+  </div>
+  <div class="content">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}
+        <div class="alert alert-{{ cat }}">
+          {{ '✓' if cat == 'success' else '✗' if cat == 'danger' else 'ℹ' }} {{ msg }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+</body>
+</html>

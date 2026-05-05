@@ -1,0 +1,41 @@
+{% extends 'public/base_public.html' %}
+{% block title %}Equipos — Liga FC{% endblock %}
+{% block content %}
+<div class="container page-wrap">
+  <div class="section-head fade-up">
+    <h1 class="section-title">Equipos</h1>
+    <div class="section-line"></div>
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px;">
+    {% for e in equipos %}
+    <a href="{{ url_for('public.equipo_detalle', id=e.id) }}"
+       class="card fade-up" style="text-decoration:none; color:inherit; padding:24px; transition:border-color .2s;"
+       onmouseover="this.style.borderColor='{{ e.color }}'"
+       onmouseout="this.style.borderColor='var(--borde)'">
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+        <div style="width:48px; height:48px; border-radius:10px; background:{{ e.color }}22; border:2px solid {{ e.color }}; display:flex; align-items:center; justify-content:center; font-family:var(--f-title); font-size:18px; font-weight:700; color:{{ e.color }};">
+          {{ e.nombre[0] }}
+        </div>
+        <div>
+          <div style="font-family:var(--f-title); font-size:18px; font-weight:600; letter-spacing:.5px;">{{ e.nombre }}</div>
+          <div style="font-size:11px; color:var(--muted); font-family:var(--f-mono);">{{ e.codigo }}</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div style="background:var(--grafito); border-radius:6px; padding:10px;">
+          <div style="font-family:var(--f-title); font-size:24px; font-weight:700; color:var(--verde);">{{ e.total_jugadores }}</div>
+          <div style="font-size:10px; color:var(--muted); font-family:var(--f-title); letter-spacing:1px;">JUGADORES</div>
+        </div>
+        {% if e.delegado %}
+        <div style="background:var(--grafito); border-radius:6px; padding:10px;">
+          <div style="font-size:12px; color:var(--texto); font-weight:500; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ e.delegado }}</div>
+          <div style="font-size:10px; color:var(--muted); font-family:var(--f-title); letter-spacing:1px;">DELEGADO</div>
+        </div>
+        {% endif %}
+      </div>
+      <div style="margin-top:16px; font-family:var(--f-title); font-size:11px; letter-spacing:1.5px; color:{{ e.color }}; text-align:right;">VER PLANTILLA →</div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

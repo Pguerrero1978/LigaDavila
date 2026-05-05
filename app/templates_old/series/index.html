@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Series - Liga Control{% endblock %}
+{% block topbar_title %}SERIES{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('series.nueva') }}" class="btn btn-primary">+ Nueva serie</a>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-wrap">
+    {% if series %}
+    <table>
+      <thead><tr><th>Código</th><th>Nombre</th><th>Año</th><th>Categoría</th><th>Jugadores</th><th>Partidos</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        {% for s in series %}
+        <tr>
+          <td><span class="badge b-amber">{{ s.codigo }}</span></td>
+          <td style="font-weight:500;color:#e0e0e0">{{ s.nombre }}</td>
+          <td>{{ s.año }}</td>
+          <td><span class="badge b-gray">{{ s.categoria or 'General' }}</span></td>
+          <td><span class="badge b-green">{{ s.total_jugadores }}</span></td>
+          <td>{{ s.total_partidos }} <span style="font-size:11px;color:#555">({{ s.partidos_jugados }} jugados)</span></td>
+          <td>
+            {% if s.activa %}<span class="badge b-green">Activa</span>
+            {% else %}<span class="badge b-gray">Inactiva</span>{% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <a href="{{ url_for('series.editar', id=s.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+              <form method="POST" action="{{ url_for('series.eliminar', id=s.id) }}" onsubmit="return confirm('¿Desactivar la serie {{ s.nombre }}?')">
+                <button type="submit" class="btn btn-danger btn-sm">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🏷️</div>
+      <div class="empty-text">No hay series registradas.</div>
+      <a href="{{ url_for('series.nueva') }}" class="btn btn-primary">+ Crear primera serie</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

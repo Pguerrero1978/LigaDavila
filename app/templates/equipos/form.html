@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if equipo else 'Nuevo' }} Equipo{% endblock %}
+{% block topbar_title %}{{ 'EDITAR EQUIPO' if equipo else 'NUEVO EQUIPO' }}{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('equipos.index') }}" class="btn btn-secondary">← Volver</a>{% endblock %}
+{% block content %}
+<div style="max-width:540px">
+<div class="card">
+  <div class="card-header"><span class="card-title">DATOS DEL EQUIPO</span></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Código *</label>
+          <input type="text" name="codigo" required placeholder="Ej: EQ001" maxlength="10"
+            value="{{ equipo.codigo if equipo else '' }}">
+        </div>
+        <div class="form-group">
+          <label>Nombre del equipo *</label>
+          <input type="text" name="nombre" required placeholder="Ej: Club Deportivo Sur"
+            value="{{ equipo.nombre if equipo else '' }}">
+        </div>
+        <div class="form-group">
+          <label>Color identificatorio</label>
+          <input type="color" name="color" value="{{ equipo.color if equipo else '#1a7a3c' }}" style="height:42px;cursor:pointer">
+        </div>
+        <div class="form-group">
+          <label>Nombre del delegado</label>
+          <input type="text" name="delegado" placeholder="Nombre completo"
+            value="{{ equipo.delegado if equipo else '' }}">
+        </div>
+        <div class="form-group full">
+          <label>Teléfono delegado</label>
+          <input type="text" name="telefono_delegado" placeholder="+56 9 XXXX XXXX"
+            value="{{ equipo.telefono_delegado if equipo else '' }}">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button type="submit" class="btn btn-primary">{{ '💾 Guardar cambios' if equipo else '+ Crear equipo' }}</button>
+        <a href="{{ url_for('equipos.index') }}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}

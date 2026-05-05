@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Tabla de Posiciones - Liga Control{% endblock %}
+{% block topbar_title %}TABLA DE POSICIONES{% endblock %}
+{% block content %}
+
+<form method="GET" class="filters">
+  <select name="serie_id" onchange="this.form.submit()" style="min-width:220px">
+    <option value="">Selecciona una serie...</option>
+    {% for s in series %}
+    <option value="{{ s.id }}" {{ 'selected' if s.id == serie_id else '' }}>{{ s.nombre }} ({{ s.año }})</option>
+    {% endfor %}
+  </select>
+</form>
+
+{% if serie %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">{{ serie.nombre|upper }}</span>
+    <span class="badge b-amber">{{ serie.año }}</span>
+  </div>
+  <div class="table-wrap">
+    {% if tabla %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Equipo</th>
+          <th title="Partidos jugados">PJ</th>
+          <th title="Partidos ganados">PG</th>
+          <th title="Partidos empatados">PE</th>
+          <th title="Partidos perdidos">PP</th>
+          <th title="Goles a favor">GF</th>
+          <th title="Goles en contra">GC</th>
+          <th title="Diferencia de goles">DG</th>
+          <th title="Puntos">PTS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in tabla %}
+        <tr {% if loop.index <= 3 %}style="background:#111"{% endif %}>
+          <td>
+            <span class="rank-n {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+              {{ loop.index }}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:10px;height:10px;border-radius:50%;background:{{ row.equipo.color }}"></div>
+              <span style="font-weight:500;color:#e0e0e0">{{ row.equipo.nombre }}</span>
+            </div>
+          </td>
+          <td>{{ row.pj }}</td>
+          <td style="color:var(--verde-claro)">{{ row.pg }}</td>
+          <td style="color:#888">{{ row.pe }}</td>
+          <td style="color:#e74c3c">{{ row.pp }}</td>
+          <td>{{ row.gf }}</td>
+          <td>{{ row.gc }}</td>
+          <td style="color:{% if row.dg > 0 %}var(--verde-claro){% elif row.dg < 0 %}#e74c3c{% else %}#888{% endif %};font-weight:500">
+            {% if row.dg > 0 %}+{% endif %}{{ row.dg }}
+          </td>
+          <td>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--acento)">{{ row.pts }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div style="padding:14px 20px;border-top:1px solid #1e1e1e">
+      <div style="display:flex;gap:20px;font-size:11px;color:#555">
+        <span>PJ = Partidos jugados</span>
+        <span>PG = Ganados (3 pts)</span>
+        <span>PE = Empatados (1 pt)</span>
+        <span>PP = Perdidos</span>
+        <span>DG = Diferencia de goles</span>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-text">No hay partidos jugados en esta serie aún.</div>
+      <a href="{{ url_for('partidos.nuevo') }}" class="btn btn-primary">+ Registrar resultado</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% elif serie_id %}
+<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Serie no encontrada.</div></div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📋</div>
+  <div class="empty-text">Selecciona una serie para ver la tabla de posiciones.</div>
+</div>
+{% endif %}
+
+{% endblock %}

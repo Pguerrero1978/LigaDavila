@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if jugador else 'Nuevo' }} Jugador - Liga Control{% endblock %}
+{% block topbar_title %}{{ 'EDITAR JUGADOR' if jugador else 'NUEVO JUGADOR' }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('jugadores.index') }}" class="btn btn-secondary">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:700px">
+<div class="card">
+  <div class="card-header"><span class="card-title">DATOS DEL JUGADOR</span></div>
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>RUT *</label>
+          <input type="text" name="rut" required placeholder="12.345.678-9"
+            value="{{ jugador.rut if jugador else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Nombre completo *</label>
+          <input type="text" name="nombre" required placeholder="Nombre Apellido"
+            value="{{ jugador.nombre if jugador else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de nacimiento</label>
+          <input type="date" name="fecha_nac"
+            value="{{ jugador.fecha_nac.isoformat() if jugador and jugador.fecha_nac else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Posición</label>
+          <select name="posicion">
+            <option value="">Seleccionar...</option>
+            {% for p in posiciones %}
+            <option value="{{ p }}" {{ 'selected' if jugador and jugador.posicion == p else '' }}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Serie actual</label>
+          <select name="serie_id">
+            <option value="">Sin serie</option>
+            {% for s in series %}
+            <option value="{{ s.id }}" {{ 'selected' if jugador and jugador.serie_id == s.id else '' }}>
+              {{ s.nombre }} ({{ s.año }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Equipo actual</label>
+          <select name="equipo_id">
+            <option value="">Sin equipo</option>
+            {% for e in equipos %}
+            <option value="{{ e.id }}" {{ 'selected' if jugador and jugador.equipo_id == e.id else '' }}>
+              {{ e.nombre }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>Foto del jugador</label>
+          {% if jugador and jugador.foto %}
+          <div style="margin-bottom:10px;display:flex;align-items:center;gap:12px">
+            <img src="{{ url_for('static', filename='img/uploads/' + jugador.foto) }}"
+              style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #2a2a2a">
+            <span style="font-size:12px;color:#666">Foto actual. Sube una nueva para reemplazarla.</span>
+          </div>
+          {% endif %}
+          <input type="file" name="foto" accept="image/*"
+            style="padding:8px;cursor:pointer;color:#888">
+          <span style="font-size:11px;color:#444;margin-top:4px">JPG, PNG, WEBP. Máx 5MB. Se redimensionará a 400x400.</span>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button type="submit" class="btn btn-primary">
+          {{ '💾 Guardar cambios' if jugador else '+ Registrar jugador' }}
+        </button>
+        <a href="{{ url_for('jugadores.index') }}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}

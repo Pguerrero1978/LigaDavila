@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Actividad - {{ partido.equipo_local.nombre }} vs {{ partido.equipo_visita.nombre }}{% endblock %}
+{% block topbar_title %}ACTIVIDAD DEL PARTIDO{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('partidos.index') }}" class="btn btn-secondary">← Partidos</a>
+  <a href="{{ url_for('partidos.editar', id=partido.id) }}" class="btn btn-secondary">Editar partido</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Encabezado del partido -->
+<div class="match-card" style="margin-bottom:18px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span class="badge b-amber">{{ partido.serie.nombre }} {{ partido.serie.año }}</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="badge {% if partido.estado == 'jugado' %}b-green{% else %}b-gray{% endif %}">{{ partido.estado }}</span>
+      <span style="font-size:11px;color:#555">{{ partido.fecha.strftime('%d/%m/%Y') }} {% if partido.hora %}{{ partido.hora.strftime('%H:%M') }}{% endif %}</span>
+    </div>
+  </div>
+  <div class="match-teams">
+    <div class="match-team">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:12px;height:12px;border-radius:50%;background:{{ partido.equipo_local.color }}"></div>
+        <div class="match-team-name">{{ partido.equipo_local.nombre }}</div>
+      </div>
+    </div>
+    <div class="match-score">{{ partido.resultado }}</div>
+    <div class="match-team" style="text-align:right">
+      <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+        <div class="match-team-name">{{ partido.equipo_visita.nombre }}</div>
+        <div style="width:12px;height:12px;border-radius:50%;background:{{ partido.equipo_visita.color }}"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 360px;gap:18px">
+
+  <!-- Timeline de eventos -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">LÍNEA DE TIEMPO ({{ actividades|length }} eventos)</span>
+    </div>
+    {% if actividades %}
+    <div style="padding:8px 0">
+      {% for act in actividades %}
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:12px 20px;border-bottom:1px solid #191919">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--acento);min-width:38px">{{ act.minuto }}'</span>
+        <span style="font-size:20px;margin-top:2px">{{ act.icono }}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:#ccc">{{ act.tipo_display }}</div>
+          <div style="font-size:12px;color:#666;margin-top:2px">
+            {% if act.jugador %}{{ act.jugador.nombre }}{% endif %}
+            {% if act.equipo %} · <span style="color:#555">{{ act.equipo.nombre }}</span>{% endif %}
+            {% if act.descripcion %} · {{ act.descripcion }}{% endif %}
+          </div>
+        </div>
+        <form method="POST" action="{{ url_for('actividad.eliminar', partido_id=partido.id, act_id=act.id) }}"
+          onsubmit="return confirm('¿Eliminar este evento?')">
+          <button type="submit" class="btn btn-danger btn-sm">✕</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">⚡</div>
+      <div class="empty-text">Sin eventos registrados.<br>Usa el formulario para agregar goles, tarjetas, etc.</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Formulario nuevo evento -->
+  <div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">REGISTRAR EVENTO</span></div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Minuto *</label>
+            <input type="number" name="minuto" required min="1" max="120" placeholder="Ej: 45">
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Tipo de evento *</label>
+            <select name="tipo" required>
+              {% for val, label in tipos_evento %}
+              <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Jugador</label>
+            <select name="jugador_id">
+              <option value="">Sin jugador específico</option>
+              <optgroup label="{{ partido.equipo_local.nombre }}">
+                {% for j in jugadores_local %}
+                <option value="{{ j.id }}">{{ j.nombre }}{% if j.posicion %} ({{ j.posicion }}){% endif %}</option>
+                {% endfor %}
+              </optgroup>
+              <optgroup label="{{ partido.equipo_visita.nombre }}">
+                {% for j in jugadores_visita %}
+                <option value="{{ j.id }}">{{ j.nombre }}{% if j.posicion %} ({{ j.posicion }}){% endif %}</option>
+                {% endfor %}
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Equipo</label>
+            <select name="equipo_id">
+              <option value="">Sin equipo específico</option>
+              <option value="{{ partido.local_id }}">{{ partido.equipo_local.nombre }}</option>
+              <option value="{{ partido.visita_id }}">{{ partido.equipo_visita.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:18px">
+            <label>Descripción</label>
+            <input type="text" name="descripcion" placeholder="Detalle adicional...">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%">+ Registrar evento</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Resumen de goles -->
+    {% set goles_local = actividades|selectattr('tipo', 'in', ['gol','gol_penal'])|selectattr('equipo_id', 'equalto', partido.local_id)|list %}
+    {% set goles_visita = actividades|selectattr('tipo', 'in', ['gol','gol_penal'])|selectattr('equipo_id', 'equalto', partido.visita_id)|list %}
+    <div class="card">
+      <div class="card-header"><span class="card-title">RESUMEN</span></div>
+      <div style="padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px">Amarillas</div>
+          <div style="font-size:24px">🟨 <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--acento)">{{ actividades|selectattr('tipo','equalto','tarjeta_amarilla')|list|length }}</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px">Rojas</div>
+          <div style="font-size:24px">🟥 <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#e74c3c">{{ actividades|selectattr('tipo','equalto','tarjeta_roja')|list|length }}</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px">Cambios</div>
+          <div style="font-size:24px">🔄 <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#5dade2">{{ actividades|selectattr('tipo','equalto','cambio')|list|length }}</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px">Total eventos</div>
+          <div><span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#ccc">{{ actividades|length }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro - Liga Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:#0d0d0d;color:#fafafa;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .wrap{width:100%;max-width:420px;padding:20px}
+    .logo{text-align:center;margin-bottom:28px}
+    .logo-t{font-family:'Bebas Neue',sans-serif;font-size:40px;color:#e8c547;letter-spacing:3px}
+    .card{background:#141414;border:1px solid #222;border-radius:16px;padding:28px}
+    .card-title{font-size:14px;color:#888;margin-bottom:20px;text-align:center}
+    .form-group{margin-bottom:14px}
+    label{display:block;font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;font-weight:500}
+    input{background:#0f0f0f;border:1px solid #252525;border-radius:8px;color:#ddd;font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 13px;width:100%;transition:border .15s}
+    input:focus{outline:none;border-color:#1a7a3c}
+    .btn{width:100%;background:#1a7a3c;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:11px;cursor:pointer;margin-top:6px}
+    .btn:hover{background:#2ecc71;color:#000}
+    .alert{padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:12px}
+    .alert-danger{background:#2a0a0a;color:#e74c3c;border:1px solid #3a1515}
+    .link{color:#555;font-size:12px;text-align:center;display:block;margin-top:14px;text-decoration:none}
+    .link:hover{color:#aaa}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><div class="logo-t">⚽ LIGA</div></div>
+  <div class="card">
+    <div class="card-title">Crear cuenta</div>
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}<div class="alert alert-{{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <form method="POST">
+      <div class="form-group"><label>Usuario</label><input type="text" name="username" required placeholder="ej: admin_liga"></div>
+      <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="correo@ejemplo.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" name="password" required placeholder="Mínimo 6 caracteres"></div>
+      <div class="form-group"><label>Confirmar contraseña</label><input type="password" name="confirm_password" required placeholder="Repite la contraseña"></div>
+      <button type="submit" class="btn">Crear cuenta</button>
+    </form>
+    <a href="{{ url_for('auth.login') }}" class="link">← Volver al login</a>
+  </div>
+</div>
+</body>
+</html>

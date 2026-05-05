@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Equipos - Liga Control{% endblock %}
+{% block topbar_title %}EQUIPOS{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('equipos.form') }}" class="btn btn-primary">+ Nuevo equipo</a>{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-wrap">
+    {% if equipos %}
+    <table>
+      <thead><tr><th>Código</th><th>Equipo</th><th>Delegado</th><th>Teléfono</th><th>Jugadores</th><th></th></tr></thead>
+      <tbody>
+        {% for e in equipos %}
+        <tr>
+          <td><span class="badge b-gray">{{ e.codigo }}</span></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:12px;height:12px;border-radius:50%;background:{{ e.color }};flex-shrink:0"></div>
+              <span style="font-weight:500;color:#e0e0e0">{{ e.nombre }}</span>
+            </div>
+          </td>
+          <td style="font-size:12px;color:#888">{{ e.delegado or '-' }}</td>
+          <td style="font-size:12px;color:#666">{{ e.telefono_delegado or '-' }}</td>
+          <td><span class="badge b-green">{{ e.total_jugadores }}</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <a href="{{ url_for('equipos.form', id=e.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+              <form method="POST" action="{{ url_for('equipos.eliminar', id=e.id) }}" onsubmit="return confirm('¿Desactivar equipo {{ e.nombre }}?')">
+                <button type="submit" class="btn btn-danger btn-sm">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🛡️</div>
+      <div class="empty-text">No hay equipos registrados.</div>
+      <a href="{{ url_for('equipos.form') }}" class="btn btn-primary">+ Crear primer equipo</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

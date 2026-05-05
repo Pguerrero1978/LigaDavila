@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Jugadores - Liga Control{% endblock %}
+{% block topbar_title %}JUGADORES{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('jugadores.nuevo') }}" class="btn btn-primary">+ Nuevo jugador</a>
+{% endblock %}
+
+{% block content %}
+<form method="GET" class="filters">
+  <select name="serie_id" onchange="this.form.submit()">
+    <option value="">Todas las series</option>
+    {% for s in series %}
+    <option value="{{ s.id }}" {% if s.id == serie_id %}selected{% endif %}>{{ s.nombre }} ({{ s.año }})</option>
+    {% endfor %}
+  </select>
+  <select name="equipo_id" onchange="this.form.submit()">
+    <option value="">Todos los equipos</option>
+    {% for e in equipos %}
+    <option value="{{ e.id }}" {% if e.id == equipo_id %}selected{% endif %}>{{ e.nombre }}</option>
+    {% endfor %}
+  </select>
+  <input type="text" name="q" value="{{ buscar }}" placeholder="🔍 Buscar por nombre o RUT..." style="min-width:220px">
+  <button type="submit" class="btn btn-secondary">Buscar</button>
+  {% if buscar or serie_id or equipo_id %}
+  <a href="{{ url_for('jugadores.index') }}" class="btn btn-secondary">✕ Limpiar</a>
+  {% endif %}
+  <span class="spacer"></span>
+  <span style="font-size:12px;color:#555">{{ jugadores|length }} jugador{{ 'es' if jugadores|length != 1 else '' }}</span>
+</form>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if jugadores %}
+    <table>
+      <thead>
+        <tr>
+          <th>Jugador</th>
+          <th>RUT</th>
+          <th>Edad</th>
+          <th>F. Nacimiento</th>
+          <th>Posición</th>
+          <th>Serie</th>
+          <th>Equipo</th>
+          <th>Goles</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for j in jugadores %}
+        <tr>
+          <td>
+            <div class="player-cell">
+              <div class="avatar">
+                {% if j.foto %}<img src="{{ url_for('static', filename='img/uploads/' + j.foto) }}">
+                {% else %}{{ j.iniciales }}{% endif %}
+              </div>
+              <div>
+                <div style="font-weight:500;color:#e0e0e0">{{ j.nombre }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span style="font-size:12px;color:#666;font-family:monospace">{{ j.rut }}</span></td>
+          <td>
+            {% if j.edad is not none %}
+            <span class="badge b-blue">{{ j.edad }} años</span>
+            {% else %}-{% endif %}
+          </td>
+          <td style="font-size:12px;color:#666">{{ j.fecha_nac.strftime('%d/%m/%Y') if j.fecha_nac else '-' }}</td>
+          <td><span class="badge b-gray">{{ j.posicion or '-' }}</span></td>
+          <td>
+            {% if j.serie %}<span class="badge b-amber">{{ j.serie.codigo }}</span>
+            {% else %}<span style="color:#444">-</span>{% endif %}
+          </td>
+          <td style="font-size:13px;color:#ccc">{{ j.equipo.nombre if j.equipo else '-' }}</td>
+          <td>
+            {% if j.total_goles > 0 %}
+            <span style="color:var(--acento);font-family:'Bebas Neue',sans-serif;font-size:18px">{{ j.total_goles }} ⚽</span>
+            {% else %}-{% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <a href="{{ url_for('jugadores.detalle', id=j.id) }}" class="btn btn-info btn-sm">Ver</a>
+              <a href="{{ url_for('jugadores.editar', id=j.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+              <form method="POST" action="{{ url_for('jugadores.eliminar', id=j.id) }}" onsubmit="return confirm('¿Eliminar a {{ j.nombre }}?')">
+                <button type="submit" class="btn btn-danger btn-sm">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">👤</div>
+      <div class="empty-text">No se encontraron jugadores.</div>
+      <a href="{{ url_for('jugadores.nuevo') }}" class="btn btn-primary">+ Agregar primer jugador</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

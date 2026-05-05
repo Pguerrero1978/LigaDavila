@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Partidos - Liga Control{% endblock %}
+{% block topbar_title %}PARTIDOS{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('partidos.nuevo') }}" class="btn btn-primary">+ Nuevo partido</a>{% endblock %}
+{% block content %}
+
+<form method="GET" class="filters">
+  <select name="serie_id" onchange="this.form.submit()">
+    <option value="">Todas las series</option>
+    {% for s in series %}
+    <option value="{{ s.id }}" {{ 'selected' if s.id == serie_id else '' }}>{{ s.nombre }} ({{ s.año }})</option>
+    {% endfor %}
+  </select>
+  <select name="estado" onchange="this.form.submit()">
+    <option value="">Todos los estados</option>
+    <option value="programado" {{ 'selected' if estado == 'programado' else '' }}>Programados</option>
+    <option value="jugado" {{ 'selected' if estado == 'jugado' else '' }}>Jugados</option>
+    <option value="suspendido" {{ 'selected' if estado == 'suspendido' else '' }}>Suspendidos</option>
+  </select>
+  {% if serie_id or estado %}
+  <a href="{{ url_for('partidos.index') }}" class="btn btn-secondary">✕ Limpiar</a>
+  {% endif %}
+  <span class="spacer"></span>
+  <span style="font-size:12px;color:#555">{{ partidos|length }} partido{{ 's' if partidos|length != 1 else '' }}</span>
+</form>
+
+{% if partidos %}
+  {% for p in partidos %}
+  <div class="match-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge b-amber">{{ p.serie.codigo }}</span>
+        <span style="font-size:11px;color:#555">
+          {{ p.fecha.strftime('%d/%m/%Y') }}
+          {% if p.hora %}{{ p.hora.strftime('%H:%M') }}{% endif %}
+          {% if p.cancha %} · 📍 {{ p.cancha }}{% endif %}
+        </span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge {% if p.estado == 'jugado' %}b-green{% elif p.estado == 'suspendido' %}b-red{% else %}b-gray{% endif %}">
+          {{ p.estado }}
+        </span>
+        <a href="{{ url_for('actividad.index', partido_id=p.id) }}" class="btn btn-info btn-sm">⚡ Actividad</a>
+        <a href="{{ url_for('partidos.editar', id=p.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+        <form method="POST" action="{{ url_for('partidos.eliminar', id=p.id) }}" onsubmit="return confirm('¿Eliminar este partido?')">
+          <button type="submit" class="btn btn-danger btn-sm">✕</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="match-teams">
+      <div class="match-team">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:{{ p.equipo_local.color }}"></div>
+          <div class="match-team-name">{{ p.equipo_local.nombre }}</div>
+        </div>
+        <div style="font-size:11px;color:#555;margin-top:4px;margin-left:18px">Local</div>
+      </div>
+      <div class="match-score">{{ p.resultado }}</div>
+      <div class="match-team" style="text-align:right">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+          <div class="match-team-name">{{ p.equipo_visita.nombre }}</div>
+          <div style="width:10px;height:10px;border-radius:50%;background:{{ p.equipo_visita.color }}"></div>
+        </div>
+        <div style="font-size:11px;color:#555;margin-top:4px;margin-right:18px">Visita</div>
+      </div>
+    </div>
+
+    <div class="match-meta">
+      <span>
+        {% if p.arbitro %}🧑‍⚖️ {{ p.arbitro }}{% endif %}
+        {% if p.actividades.count() > 0 %}
+        <span class="badge b-blue" style="margin-left:8px">{{ p.actividades.count() }} eventos</span>
+        {% endif %}
+      </span>
+      {% if p.observaciones %}
+      <span style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        📝 {{ p.observaciones }}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🗓️</div>
+  <div class="empty-text">No hay partidos con ese filtro.</div>
+  <a href="{{ url_for('partidos.nuevo') }}" class="btn btn-primary">+ Programar primer partido</a>
+</div>
+{% endif %}
+{% endblock %}

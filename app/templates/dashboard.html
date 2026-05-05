@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - Liga Control{% endblock %}
+{% block topbar_title %}DASHBOARD{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('partidos.nuevo') }}" class="btn btn-accent">+ Partido</a>
+  <a href="{{ url_for('jugadores.nuevo') }}" class="btn btn-primary">+ Jugador</a>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Jugadores</div>
+    <div class="stat-value sv-green">{{ total_jugadores }}</div>
+    <div class="stat-sub">inscritos activos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Equipos</div>
+    <div class="stat-value">{{ total_equipos }}</div>
+    <div class="stat-sub">registrados</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Series</div>
+    <div class="stat-value sv-blue">{{ total_series }}</div>
+    <div class="stat-sub">activas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Partidos jugados</div>
+    <div class="stat-value sv-amber">{{ partidos_jugados }}</div>
+    <div class="stat-sub">{{ partidos_programados }} programados</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total goles</div>
+    <div class="stat-value sv-red">{{ total_goles }}</div>
+    <div class="stat-sub">anotados en la liga</div>
+  </div>
+</div>
+
+<div class="dash-grid" style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px">
+
+  <!-- Últimos partidos -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">ÚLTIMOS RESULTADOS</span>
+        <a href="{{ url_for('partidos.index') }}" class="btn btn-secondary btn-sm">Ver todos</a>
+      </div>
+      {% if ultimos_partidos %}
+        {% for p in ultimos_partidos %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid #191919">
+          <div style="flex:1;text-align:right">
+            <div style="font-size:13px;font-weight:500;color:#e0e0e0">{{ p.equipo_local.nombre }}</div>
+            <div style="font-size:10px;color:#444;margin-top:2px">Local</div>
+          </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--acento);margin:0 18px;min-width:70px;text-align:center;letter-spacing:4px">
+            {{ p.goles_local }} - {{ p.goles_visita }}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;color:#e0e0e0">{{ p.equipo_visita.nombre }}</div>
+            <div style="font-size:10px;color:#444;margin-top:2px">Visita</div>
+          </div>
+          <div style="margin-left:12px">
+            <span class="badge b-gray" style="font-size:10px">{{ p.fecha.strftime('%d/%m') }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state"><div class="empty-icon">🗓️</div><div class="empty-text">No hay partidos jugados aún.</div></div>
+      {% endif %}
+    </div>
+
+    <!-- Próximos partidos -->
+    {% if proximos_partidos %}
+    <div class="card">
+      <div class="card-header"><span class="card-title">PRÓXIMOS PARTIDOS</span></div>
+      {% for p in proximos_partidos %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px;border-bottom:1px solid #191919">
+        <div style="font-size:12px;color:#777">
+          <span class="badge b-amber">{{ p.serie.codigo }}</span>
+          <span style="margin-left:8px">{{ p.fecha.strftime('%d/%m/%Y') }} {{ p.hora.strftime('%H:%M') if p.hora else '' }}</span>
+        </div>
+        <div style="font-size:13px;color:#ccc">{{ p.equipo_local.nombre }} <span style="color:#444">vs</span> {{ p.equipo_visita.nombre }}</div>
+        <a href="{{ url_for('partidos.editar', id=p.id) }}" class="btn btn-secondary btn-sm">Registrar</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Top goleadores -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">TOP GOLEADORES</span>
+        <a href="{{ url_for('goleadores.index') }}" class="btn btn-secondary btn-sm">Ver todo</a>
+      </div>
+      <div style="padding:10px 0">
+        {% if goleadores %}
+          {% for jugador, goles in goleadores %}
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid #191919">
+            <span class="rank-n {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">{{ loop.index }}</span>
+            <div class="avatar">
+              {% if jugador.foto %}<img src="{{ url_for('static', filename='img/uploads/' + jugador.foto) }}">
+              {% else %}{{ jugador.iniciales }}{% endif %}
+            </div>
+            <div style="flex:1">
+              <div style="font-size:13px;color:#ddd;font-weight:500">{{ jugador.nombre }}</div>
+              <div style="font-size:11px;color:#555">{{ jugador.equipo.nombre if jugador.equipo else '—' }}</div>
+            </div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--acento)">{{ goles }}</div>
+            <span style="font-size:14px">⚽</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state"><div class="empty-icon">🥅</div><div class="empty-text">Sin goles registrados.</div></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Equipos más activos -->
+    {% if equipos_activos %}
+    <div class="card">
+      <div class="card-header"><span class="card-title">EQUIPOS MÁS ACTIVOS</span></div>
+      <div style="padding:14px 20px">
+        {% set max_p = equipos_activos[0][1] if equipos_activos else 1 %}
+        {% for eq, total in equipos_activos %}
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:13px;color:#ccc">{{ eq.nombre }}</span>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--acento)">{{ total }} PJ</span>
+          </div>
+          <div style="background:#1a1a1a;border-radius:4px;height:5px">
+            <div style="background:{{ eq.color }};border-radius:4px;height:100%;width:{{ (total/max_p*100)|round|int }}%;transition:.3s"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

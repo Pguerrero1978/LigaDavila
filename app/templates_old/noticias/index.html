@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Noticias — Admin{% endblock %}
+{% block topbar_title %}NOTICIAS{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('noticias_admin.form') }}" class="btn btn-primary">+ Nueva noticia</a>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-wrap">
+    {% if noticias %}
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Categoría</th>
+          <th>Fecha</th>
+          <th>Autor</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in noticias %}
+        <tr>
+          <td style="max-width:300px;">
+            <div style="font-weight:500; color:#e0e0e0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:280px;">
+              {{ n.titulo }}
+            </div>
+            {% if n.resumen %}
+            <div style="font-size:11px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:280px; margin-top:2px;">
+              {{ n.resumen }}
+            </div>
+            {% endif %}
+          </td>
+          <td><span class="badge b-blue">{{ n.categoria_display[0] }} {{ n.categoria_display[1] }}</span></td>
+          <td style="font-size:12px; color:#666; white-space:nowrap;">{{ n.creado_en.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td style="font-size:12px; color:#888;">{{ n.autor.username if n.autor else '—' }}</td>
+          <td>
+            {% if n.publicada %}
+            <span class="badge b-green">Publicada</span>
+            {% else %}
+            <span class="badge b-gray">Borrador</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex; gap:6px; flex-wrap:nowrap;">
+              <a href="{{ url_for('public.noticia_detalle', id=n.id) }}" target="_blank" class="btn btn-info btn-sm">Ver</a>
+              <a href="{{ url_for('noticias_admin.form', id=n.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+              <form method="POST" action="{{ url_for('noticias_admin.toggle_publicar', id=n.id) }}">
+                <button type="submit" class="btn btn-secondary btn-sm">
+                  {{ 'Despublicar' if n.publicada else 'Publicar' }}
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('noticias_admin.eliminar', id=n.id) }}"
+                    onsubmit="return confirm('¿Eliminar esta noticia?')">
+                <button type="submit" class="btn btn-danger btn-sm">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📰</div>
+      <div class="empty-text">No hay noticias. Crea la primera.</div>
+      <a href="{{ url_for('noticias_admin.form') }}" class="btn btn-primary" style="margin-top:12px;">+ Nueva noticia</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

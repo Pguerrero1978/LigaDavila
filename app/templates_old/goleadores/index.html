@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Goleadores - Liga Control{% endblock %}
+{% block topbar_title %}GOLEADORES{% endblock %}
+{% block content %}
+
+<form method="GET" class="filters">
+  <select name="serie_id" onchange="this.form.submit()">
+    <option value="">Todas las series</option>
+    {% for s in series %}
+    <option value="{{ s.id }}" {{ 'selected' if s.id == serie_id else '' }}>{{ s.nombre }} ({{ s.año }})</option>
+    {% endfor %}
+  </select>
+  {% if serie_id %}<a href="{{ url_for('goleadores.index') }}" class="btn btn-secondary">✕ Todas las series</a>{% endif %}
+</form>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+
+  <!-- Tabla goleadores -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">TABLA DE GOLEADORES</span></div>
+    {% if goleadores %}
+    <div style="padding:8px 0">
+      {% for jugador, goles in goleadores %}
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid #191919">
+        <span class="rank-n {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">{{ loop.index }}</span>
+        <div class="avatar" style="width:36px;height:36px;font-size:13px">
+          {% if jugador.foto %}<img src="{{ url_for('static', filename='img/uploads/' + jugador.foto) }}">
+          {% else %}{{ jugador.iniciales }}{% endif %}
+        </div>
+        <div style="flex:1">
+          <div style="font-size:13px;color:#ddd;font-weight:500">{{ jugador.nombre }}</div>
+          <div style="font-size:11px;color:#555">
+            {{ jugador.equipo.nombre if jugador.equipo else '—' }}
+            {% if jugador.posicion %} · {{ jugador.posicion }}{% endif %}
+          </div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--acento)">{{ goles }}</div>
+        <span style="font-size:14px">⚽</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="empty-icon">🥅</div><div class="empty-text">Sin goles registrados.</div></div>
+    {% endif %}
+  </div>
+
+  <!-- Columna derecha -->
+  <div>
+    <!-- Goles por equipo -->
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-header"><span class="card-title">GOLES POR EQUIPO</span></div>
+      {% if goles_equipo %}
+      <div style="padding:16px 20px">
+        {% for eq, goles in goles_equipo %}
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:10px;height:10px;border-radius:50%;background:{{ eq.color }}"></div>
+              <span style="font-size:13px;color:#ccc">{{ eq.nombre }}</span>
+            </div>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--acento)">{{ goles }}</span>
+          </div>
+          <div style="background:#1a1a1a;border-radius:4px;height:6px">
+            <div style="background:{{ eq.color }};border-radius:4px;height:100%;width:{{ ((goles / max_goles_eq) * 100)|round|int }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">🛡️</div><div class="empty-text">Sin datos.</div></div>
+      {% endif %}
+    </div>
+
+    <!-- Tarjetas amarillas -->
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-header"><span class="card-title">🟨 MÁS AMONESTADOS</span></div>
+      {% if amarillas %}
+      <div style="padding:8px 0">
+        {% for jugador, cnt in amarillas %}
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 20px;border-bottom:1px solid #191919">
+          <span class="rank-n" style="font-size:16px">{{ loop.index }}</span>
+          <div style="flex:1;font-size:13px;color:#ccc">{{ jugador.nombre }}</div>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--acento)">{{ cnt }}</span>
+          <span>🟨</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:20px;text-align:center;color:#444;font-size:13px">Sin tarjetas amarillas.</div>
+      {% endif %}
+    </div>
+
+    <!-- Tarjetas rojas -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">🟥 EXPULSADOS</span></div>
+      {% if rojas %}
+      <div style="padding:8px 0">
+        {% for jugador, cnt in rojas %}
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 20px;border-bottom:1px solid #191919">
+          <span class="rank-n" style="font-size:16px">{{ loop.index }}</span>
+          <div style="flex:1;font-size:13px;color:#ccc">{{ jugador.nombre }}</div>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#e74c3c">{{ cnt }}</span>
+          <span>🟥</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:20px;text-align:center;color:#444;font-size:13px">Sin expulsiones.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

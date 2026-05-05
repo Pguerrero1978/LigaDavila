@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if partido else 'Nuevo' }} Partido{% endblock %}
+{% block topbar_title %}{{ 'EDITAR PARTIDO' if partido else 'NUEVO PARTIDO' }}{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('partidos.index') }}" class="btn btn-secondary">← Volver</a>{% endblock %}
+{% block content %}
+<div style="max-width:680px">
+<div class="card">
+  <div class="card-header"><span class="card-title">DATOS DEL PARTIDO</span></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label>Serie *</label>
+          <select name="serie_id" required>
+            <option value="">Seleccionar serie...</option>
+            {% for s in series %}
+            <option value="{{ s.id }}" {{ 'selected' if partido and partido.serie_id == s.id else '' }}>
+              {{ s.nombre }} ({{ s.año }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Equipo local *</label>
+          <select name="local_id" required>
+            <option value="">Seleccionar...</option>
+            {% for e in equipos %}
+            <option value="{{ e.id }}" {{ 'selected' if partido and partido.local_id == e.id else '' }}>{{ e.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Equipo visita *</label>
+          <select name="visita_id" required>
+            <option value="">Seleccionar...</option>
+            {% for e in equipos %}
+            <option value="{{ e.id }}" {{ 'selected' if partido and partido.visita_id == e.id else '' }}>{{ e.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" name="fecha" required
+            value="{{ partido.fecha.isoformat() if partido else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" name="hora"
+            value="{{ partido.hora.strftime('%H:%M') if partido and partido.hora else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Cancha / Lugar</label>
+          <input type="text" name="cancha" placeholder="Ej: Estadio Municipal"
+            value="{{ partido.cancha if partido else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Árbitro</label>
+          <input type="text" name="arbitro" placeholder="Nombre del árbitro"
+            value="{{ partido.arbitro if partido else '' }}">
+        </div>
+
+        <div class="form-section-title">Resultado (completar si ya se jugó)</div>
+
+        <div class="form-group">
+          <label>Goles local</label>
+          <input type="number" name="goles_local" min="0" placeholder="0"
+            value="{{ partido.goles_local if partido and partido.estado == 'jugado' else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Goles visita</label>
+          <input type="number" name="goles_visita" min="0" placeholder="0"
+            value="{{ partido.goles_visita if partido and partido.estado == 'jugado' else '' }}">
+        </div>
+
+        {% if partido %}
+        <div class="form-group">
+          <label>Estado</label>
+          <select name="estado">
+            <option value="programado" {{ 'selected' if partido.estado == 'programado' else '' }}>Programado</option>
+            <option value="jugado" {{ 'selected' if partido.estado == 'jugado' else '' }}>Jugado</option>
+            <option value="suspendido" {{ 'selected' if partido.estado == 'suspendido' else '' }}>Suspendido</option>
+          </select>
+        </div>
+        {% endif %}
+
+        <div class="form-group full">
+          <label>Observaciones</label>
+          <textarea name="observaciones" placeholder="Incidencias, condiciones del campo, etc...">{{ partido.observaciones if partido else '' }}</textarea>
+        </div>
+
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button type="submit" class="btn btn-primary">{{ '💾 Guardar cambios' if partido else '+ Registrar partido' }}</button>
+        <a href="{{ url_for('partidos.index') }}" class="btn btn-secondary">Cancelar</a>
+        {% if partido %}
+        <a href="{{ url_for('actividad.index', partido_id=partido.id) }}" class="btn btn-info" style="margin-left:auto">⚡ Registrar actividad</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}

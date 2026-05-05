@@ -1,0 +1,89 @@
+{% extends 'public/base_public.html' %}
+{% block title %}Tabla de Posiciones — Liga FC{% endblock %}
+{% block content %}
+<div class="container page-wrap">
+  <div class="section-head fade-up">
+    <h1 class="section-title">Tabla de posiciones</h1>
+    <div class="section-line"></div>
+    {% if serie %}<span class="badge b-amber">{{ serie.año }}</span>{% endif %}
+  </div>
+
+  <form method="GET" class="filters fade-up">
+    <select name="serie_id" onchange="this.form.submit()" style="min-width:220px;">
+      {% for s in series %}
+      <option value="{{ s.id }}" {{ 'selected' if s.id == serie_id }}>{{ s.nombre }} ({{ s.año }})</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if serie %}
+  <div class="card fade-up">
+    <div class="card-head">
+      <span class="card-title">SERIE : {{ serie.nombre }}</span>
+      <span style="font-size:12px; color:var(--azul);"><H3>{{ tabla|length }} equipos</H3></span>
+    </div>
+    {% if tabla %}
+    <div style="overflow-x:auto;">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Equipo</th>
+            <th class="num" title="Jugados">PJ</th>
+            <th class="num" title="Ganados">PG</th>
+            <th class="num" title="Empatados">PE</th>
+            <th class="num" title="Perdidos">PP</th>
+            <th class="num" title="Goles a favor">GF</th>
+            <th class="num" title="Goles en contra">GC</th>
+            <th class="num" title="Diferencia de goles">DG</th>
+            <th class="num" title="Puntos">PTS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in tabla %}
+          <tr {% if loop.index <= 2 %}style="background:rgba(0,200,83,.04)"{% endif %}>
+            <td>
+              <span class="rank-num {% if loop.index==1 %}rank-1{% elif loop.index==2 %}rank-2{% elif loop.index==3 %}rank-3{% endif %}">
+                {{ loop.index }}
+              </span>
+            </td>
+            <td>
+              <a href="{{ url_for('public.equipo_detalle', id=row.equipo.id) }}"
+                 style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
+                <div style="width:10px;height:10px;border-radius:50%;background:{{ row.equipo.color }};flex-shrink:0;"></div>
+                <span style="font-family:var(--f-title); font-size:15px; font-weight:500;">{{ row.equipo.nombre }}</span>
+              </a>
+            </td>
+            <td class="num">{{ row.pj }}</td>
+            <td class="num" style="color:var(--verde);">{{ row.pg }}</td>
+            <td class="num" style="color:var(--muted);">{{ row.pe }}</td>
+            <td class="num" style="color:var(--rojo);">{{ row.pp }}</td>
+            <td class="num">{{ row.gf }}</td>
+            <td class="num">{{ row.gc }}</td>
+            <td class="num" style="color:{% if row.dg > 0 %}var(--verde){% elif row.dg < 0 %}var(--rojo){% else %}var(--muted){% endif %}; font-weight:600;">
+              {% if row.dg > 0 %}+{% endif %}{{ row.dg }}
+            </td>
+            <td class="num">
+              <span style="font-family:var(--f-title); font-size:22px; font-weight:700; color:var(--acento);">{{ row.pts }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:14px 20px; border-top:1px solid var(--borde); display:flex; gap:18px; flex-wrap:wrap;">
+      <span style="font-size:11px; color:var(--muted); font-family:var(--f-mono);">PJ Partidos jugados</span>
+      <span style="font-size:11px; color:var(--muted); font-family:var(--f-mono);">PG Ganados (3pts)</span>
+      <span style="font-size:11px; color:var(--muted); font-family:var(--f-mono);">PE Empatados (1pt)</span>
+      <span style="font-size:11px; color:var(--muted); font-family:var(--f-mono);">PP Perdidos</span>
+      <span style="font-size:11px; color:var(--muted); font-family:var(--f-mono);">DG Diferencia de goles</span>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin partidos jugados en esta serie</div></div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Selecciona una serie para ver la tabla</div></div>
+  {% endif %}
+</div>
+{% endblock %}

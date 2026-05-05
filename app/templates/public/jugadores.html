@@ -1,0 +1,54 @@
+{% extends 'public/base_public.html' %}
+{% block title %}Jugadores — Liga FC{% endblock %}
+{% block content %}
+<div class="container page-wrap">
+  <div class="section-head fade-up">
+    <h1 class="section-title">Jugadores</h1>
+    <div class="section-line"></div>
+    <span style="font-size:12px; color:var(--muted);">{{ jugadores|length }} inscritos</span>
+  </div>
+  <form method="GET" class="filters fade-up">
+    <input type="text" name="q" value="{{ q }}" placeholder="🔍 Buscar jugador..." style="min-width:200px;">
+    <select name="equipo_id" onchange="this.form.submit()">
+      <option value="">Todos los equipos</option>
+      {% for e in equipos %}<option value="{{ e.id }}" {{ 'selected' if e.id == equipo_id }}>{{ e.nombre }}</option>{% endfor %}
+    </select>
+    <select name="serie_id" onchange="this.form.submit()">
+      <option value="">Todas las series</option>
+      {% for s in series %}<option value="{{ s.id }}" {{ 'selected' if s.id == serie_id }}>{{ s.nombre }}</option>{% endfor %}
+    </select>
+    <select name="posicion" onchange="this.form.submit()">
+      <option value="">Todas las posiciones</option>
+      {% for p in ['Portero','Defensa','Mediocampista','Delantero'] %}
+      <option value="{{ p }}" {{ 'selected' if posicion == p }}>{{ p }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline btn-sm">Buscar</button>
+    {% if q or equipo_id or serie_id or posicion %}
+    <a href="{{ url_for('public.jugadores') }}" class="btn btn-outline btn-sm">✕ Limpiar</a>
+    {% endif %}
+  </form>
+
+  {% if jugadores %}
+  <div class="player-grid fade-up">
+    {% for j in jugadores %}
+    <a href="{{ url_for('public.jugador_detalle', id=j.id) }}" class="player-card">
+      <div class="player-avatar">
+        {% if j.foto %}<img src="{{ url_for('static', filename='img/uploads/' + j.foto) }}">
+        {% else %}{{ j.iniciales }}{% endif %}
+      </div>
+      <div class="player-name">{{ j.nombre }}</div>
+      <div class="player-pos">{{ j.posicion or 'Sin posición' }}</div>
+      {% if j.equipo %}<div style="font-size:11px; color:var(--muted); margin-top:4px;">{{ j.equipo.nombre }}</div>{% endif %}
+      {% if j.total_goles > 0 %}
+      <div style="margin-top:8px; font-family:var(--f-title); font-size:14px; color:var(--acento);">{{ j.total_goles }} ⚽</div>
+      {% endif %}
+      {% if j.edad %}<div style="margin-top:4px;" class="badge b-gray">{{ j.edad }} años</div>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">👤</div><div class="empty-text">No se encontraron jugadores</div></div>
+  {% endif %}
+</div>
+{% endblock %}

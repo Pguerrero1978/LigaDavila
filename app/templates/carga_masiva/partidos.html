@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block title %}Carga Masiva de Partidos{% endblock %}
+{% block topbar_title %}CARGA MASIVA{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('partidos.index') }}" class="btn btn-secondary">← Volver a Partidos</a>
+{% endblock %}
+
+{% block content %}
+
+{# ── Mensajes flash ── #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="alert alert-{{ cat }}" style="margin-bottom:16px">{{ msg }}</div>
+  {% endfor %}
+{% endwith %}
+
+{# ── Instrucciones ── #}
+<div class="card" style="margin-bottom:20px">
+  <div style="padding:20px 24px;border-bottom:1px solid #1e1e1e;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-family:var(--font-title);font-size:20px;letter-spacing:1px;color:var(--acento)">
+        📥 Carga masiva de fixture
+      </div>
+      <div style="font-size:12px;color:#666;margin-top:4px">
+        Sube un Excel con todos los partidos del campeonato en un solo paso
+      </div>
+    </div>
+    <a href="{{ url_for('carga_masiva.descargar_plantilla') }}" class="btn btn-accent">
+      ⬇ Descargar plantilla
+    </a>
+  </div>
+
+  <div style="padding:20px 24px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:0">
+
+      <div style="background:#0e1e14;border:1px solid #1a3a24;border-radius:10px;padding:16px">
+        <div style="font-size:22px;margin-bottom:8px">1️⃣</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px">Descarga la plantilla</div>
+        <div style="font-size:12px;color:#777;line-height:1.6">
+          El Excel incluye la hoja <code style="background:#1a1a1a;padding:1px 5px;border-radius:3px">partidos</code>
+          y una hoja <code style="background:#1a1a1a;padding:1px 5px;border-radius:3px">referencia</code>
+          con todos los códigos de equipos y series disponibles.
+        </div>
+      </div>
+
+      <div style="background:#0e1e14;border:1px solid #1a3a24;border-radius:10px;padding:16px">
+        <div style="font-size:22px;margin-bottom:8px">2️⃣</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px">Completa el fixture</div>
+        <div style="font-size:12px;color:#777;line-height:1.6">
+          Rellena la hoja <code style="background:#1a1a1a;padding:1px 5px;border-radius:3px">partidos</code>.
+          Usa exactamente los códigos de la hoja de referencia.
+          La hora, cancha y árbitro son opcionales.
+        </div>
+      </div>
+
+      <div style="background:#0e1e14;border:1px solid #1a3a24;border-radius:10px;padding:16px">
+        <div style="font-size:22px;margin-bottom:8px">3️⃣</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px">Sube y confirma</div>
+        <div style="font-size:12px;color:#777;line-height:1.6">
+          Si el archivo tiene errores se te mostrará fila por fila.
+          Solo se guarda si <strong style="color:#e8c547">todo el archivo es válido</strong>.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{# ── Errores de validación ── #}
+{% if errores %}
+<div class="card" style="margin-bottom:20px;border-color:#3a1515">
+  <div style="padding:16px 24px;border-bottom:1px solid #3a1515;display:flex;align-items:center;gap:10px">
+    <span style="font-size:20px">❌</span>
+    <div>
+      <div style="font-weight:600;color:#e74c3c;font-size:14px">
+        Se encontraron {{ errores|length }} error(es) — ningún partido fue guardado
+      </div>
+      <div style="font-size:12px;color:#777;margin-top:2px">
+        Archivo: <span style="color:#aaa">{{ archivo_nombre }}</span>
+      </div>
+    </div>
+  </div>
+  <div style="padding:16px 24px;max-height:340px;overflow-y:auto">
+    {% for error in errores %}
+    <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid #1e1e1e;font-size:13px">
+      <span style="color:#e74c3c;flex-shrink:0">●</span>
+      <span style="color:#ccc">{{ error }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="padding:14px 24px;background:#1a0e0e;border-top:1px solid #3a1515;font-size:12px;color:#888">
+    Corrige los errores en el Excel y vuelve a subirlo.
+  </div>
+</div>
+{% endif %}
+
+{# ── Formulario de carga ── #}
+<div class="card">
+  <div style="padding:20px 24px;border-bottom:1px solid #1e1e1e">
+    <div style="font-weight:600;font-size:14px">Subir archivo Excel</div>
+  </div>
+  <div style="padding:24px">
+    <form method="POST" enctype="multipart/form-data" id="form-carga">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+
+        <div>
+          <label style="display:block;font-size:12px;color:#888;margin-bottom:8px;font-weight:500;letter-spacing:.5px;text-transform:uppercase">
+            Serie por defecto <span style="color:#555;font-weight:normal">(opcional)</span>
+          </label>
+          <select name="serie_id" style="width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:7px;color:#ddd;padding:9px 12px;font-size:13px">
+            <option value="">— Se toma de la columna del Excel —</option>
+            {% for s in series %}
+            <option value="{{ s.id }}">{{ s.codigo }} — {{ s.nombre }} ({{ s.año }})</option>
+            {% endfor %}
+          </select>
+          <div style="font-size:11px;color:#555;margin-top:5px">
+            Si seleccionas una serie aquí, se aplica a todas las filas que no tengan código de serie.
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:12px;color:#888;margin-bottom:8px;font-weight:500;letter-spacing:.5px;text-transform:uppercase">
+            Archivo Excel <span style="color:#e74c3c">*</span>
+          </label>
+          <div id="drop-zone" style="border:2px dashed #2a2a2a;border-radius:7px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative">
+            <input type="file" name="archivo" id="archivo-input" accept=".xlsx,.xls"
+              style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+            <div id="drop-label">
+              <div style="font-size:24px;margin-bottom:6px">📂</div>
+              <div style="font-size:13px;color:#888">Arrastra el Excel aquí o haz clic</div>
+              <div style="font-size:11px;color:#555;margin-top:4px">.xlsx · máx 5MB</div>
+            </div>
+            <div id="drop-selected" style="display:none">
+              <div style="font-size:22px;margin-bottom:6px">📊</div>
+              <div id="drop-filename" style="font-size:13px;color:var(--verde-claro);font-weight:500"></div>
+              <div style="font-size:11px;color:#555;margin-top:4px">Haz clic para cambiar</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {# Vista previa de equipos y series disponibles #}
+      <details style="margin-bottom:24px">
+        <summary style="cursor:pointer;font-size:12px;color:#666;padding:8px 0;user-select:none">
+          Ver códigos disponibles ({{ equipos|length }} equipos · {{ series|length }} series)
+        </summary>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+          <div>
+            <div style="font-size:11px;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Equipos activos</div>
+            <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-radius:7px;padding:10px;max-height:160px;overflow-y:auto">
+              {% for e in equipos %}
+              <div style="display:flex;gap:10px;padding:4px 0;border-bottom:1px solid #151515;font-size:12px">
+                <span style="color:var(--acento);font-weight:600;min-width:50px">{{ e.codigo }}</span>
+                <span style="color:#888">{{ e.nombre }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Series activas</div>
+            <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-radius:7px;padding:10px;max-height:160px;overflow-y:auto">
+              {% for s in series %}
+              <div style="display:flex;gap:10px;padding:4px 0;border-bottom:1px solid #151515;font-size:12px">
+                <span style="color:var(--verde-claro);font-weight:600;min-width:50px">{{ s.codigo }}</span>
+                <span style="color:#888">{{ s.nombre }} ({{ s.año }})</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div style="display:flex;gap:12px;align-items:center">
+        <button type="submit" class="btn btn-primary" id="btn-subir" style="font-size:14px;padding:10px 24px">
+          ⬆ Subir y validar
+        </button>
+        <a href="{{ url_for('partidos.index') }}" class="btn btn-secondary">Cancelar</a>
+        <span id="cargando" style="display:none;font-size:12px;color:#666">Procesando…</span>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById('archivo-input');
+  const label = document.getElementById('drop-label');
+  const selected = document.getElementById('drop-selected');
+  const filename = document.getElementById('drop-filename');
+  const dropZone = document.getElementById('drop-zone');
+  const form = document.getElementById('form-carga');
+  const btnSubir = document.getElementById('btn-subir');
+  const cargando = document.getElementById('cargando');
+
+  input.addEventListener('change', () => {
+    if (input.files.length) {
+      label.style.display = 'none';
+      selected.style.display = 'block';
+      filename.textContent = input.files[0].name;
+      dropZone.style.borderColor = 'var(--verde)';
+    }
+  });
+
+  ['dragover','dragenter'].forEach(evt =>
+    dropZone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--verde-claro)';
+    })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropZone.addEventListener(evt, () => dropZone.style.borderColor = '#2a2a2a')
+  );
+
+  form.addEventListener('submit', () => {
+    btnSubir.disabled = true;
+    cargando.style.display = 'inline';
+  });
+</script>
+
+{% endblock %}

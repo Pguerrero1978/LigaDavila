@@ -1,0 +1,56 @@
+{% extends 'public/base_public.html' %}
+{% block title %}Noticias — Liga FC{% endblock %}
+{% block content %}
+<div class="container page-wrap">
+  <div class="section-head fade-up">
+    <h1 class="section-title">Noticias</h1>
+    <div class="section-line"></div>
+  </div>
+
+  {% if noticias.items %}
+  <div class="news-grid fade-up">
+    {% for n in noticias.items %}
+    <a href="{{ url_for('public.noticia_detalle', id=n.id) }}" class="news-card">
+      {% if n.imagen_url %}
+      <img src="{{ n.imagen_url }}" class="news-img" alt="{{ n.titulo }}" onerror="this.outerHTML='<div class=\'news-img\'>'+n.categoria_display[0]+'</div>'">
+      {% else %}
+      <div class="news-img">{{ n.categoria_display[0] }}</div>
+      {% endif %}
+      <div class="news-body">
+        <div class="news-cat">{{ n.categoria_display[1] }}</div>
+        <div class="news-title">{{ n.titulo }}</div>
+        {% if n.resumen %}<div class="news-excerpt">{{ n.resumen }}</div>{% endif %}
+        <div class="news-date">{{ n.creado_en.strftime('%d/%m/%Y') }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Paginación -->
+  {% if noticias.pages > 1 %}
+  <div style="display:flex; justify-content:center; gap:8px; margin-top:32px;" class="fade-up">
+    {% if noticias.has_prev %}
+    <a href="{{ url_for('public.noticias', page=noticias.prev_num) }}" class="btn btn-outline btn-sm">← Anterior</a>
+    {% endif %}
+    {% for p in noticias.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+      <a href="{{ url_for('public.noticias', page=p) }}"
+         class="btn btn-sm {{ 'btn-primary' if p == noticias.page else 'btn-outline' }}">{{ p }}</a>
+      {% else %}
+      <span style="color:var(--muted); padding:6px 4px;">…</span>
+      {% endif %}
+    {% endfor %}
+    {% if noticias.has_next %}
+    <a href="{{ url_for('public.noticias', page=noticias.next_num) }}" class="btn btn-outline btn-sm">Siguiente →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">📰</div>
+    <div class="empty-text">No hay noticias publicadas aún.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
